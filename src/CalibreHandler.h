@@ -1,5 +1,3 @@
-#pragma once
-
 
 #include <iostream>
 #include <sstream>
@@ -20,27 +18,24 @@ using namespace std;
 
 class CalibreHandler {
 private:
-	const string outputFileName = "out_camera_data.xml";
+	string outputFileName;
 	Mat cameraMatrix, disCoffs;
 	double video_Width;
 	double video_Height;
-	vector<string> m_filenames;
-	Size m_borderSize = Size(9, 6);
+	//vector<string> m_filenames;
+	Size m_borderSize;
 
 	Mat image;
 	vector<Point3f> threeDimCornerPoints;
 	vector<Point2f> twoDimCornerPoints;
 	vector<Point3f> objpts;
-	//Mat rvec, tvec;
-	//vector<Point2f> imgpts;
 
 public:
-	void readCameraParam();
-	void initialSetting(const double &res_width, const double &res_height);
-	void videoStart(const double &video_Width, const double &video_Height);
+	bool readCameraParam();
+	void initialSetting();
+	bool videoStart();
 	void addThreeDimCornerPoints();
 	void addDrawingPoints();
-	void addTwoDimCornerPoints();
 	void mappingAndDrawing();
 
 };

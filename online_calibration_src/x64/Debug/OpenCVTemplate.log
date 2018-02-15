@@ -1,0 +1,7 @@
+﻿  main.cpp
+c:\users\ryan\documents\github\cv_practical-1\online_calibration_src\src\main.cpp(2): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+  CalibreHandler.cpp
+c:\users\ryan\documents\github\cv_practical-1\online_calibration_src\src\calibrehandler.cpp(54): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  Generating Code...
+  OpenCVTemplate.vcxproj -> C:\Users\ryan\Documents\GitHub\CV_practical-1\online_calibration_src\x64\Debug\OpenCVDrawCube.exe
+  OpenCVTemplate.vcxproj -> C:\Users\ryan\Documents\GitHub\CV_practical-1\online_calibration_src\x64\Debug\OpenCVDrawCube.pdb (Partial PDB)

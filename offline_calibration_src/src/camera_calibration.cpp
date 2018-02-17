@@ -15,6 +15,11 @@
 using namespace cv;
 using namespace std;
 
+/*
+A lot of code in this file was taken from the OpenCV tutorial to calibrate your camera at:
+https://docs.opencv.org/2.4/doc/tutorials/calib3d/camera_calibration/camera_calibration.html#cameracalibrationopencv
+*/
+
 static void help()
 {
     cout <<  "This is a camera calibration sample." << endl
@@ -29,7 +34,8 @@ public:
     enum Pattern { NOT_EXISTING, CHESSBOARD, CIRCLES_GRID, ASYMMETRIC_CIRCLES_GRID };
     enum InputType { INVALID, CAMERA, VIDEO_FILE, IMAGE_LIST };
 
-    void write(FileStorage& fs) const                        //Write serialization for this class
+	//Write serialization for this class
+    void write(FileStorage& fs) const                        
     {
         fs << "{"
                   << "BoardSize_Width"  << boardSize.width
@@ -52,7 +58,8 @@ public:
                   << "Input" << input
            << "}";
     }
-    void read(const FileNode& node)                          //Read serialization for this class
+	//Read serialization for this class
+    void read(const FileNode& node)                          
     {
         node["BoardSize_Width" ] >> boardSize.width;
         node["BoardSize_Height"] >> boardSize.height;
@@ -78,6 +85,8 @@ public:
 
         validate();
     }
+
+	//check for simple errors in the input data
     void validate()
     {
         goodInput = true;
@@ -162,6 +171,8 @@ public:
         atImageList = 0;
 
     }
+
+	//returns the next image to be used
     Mat nextImage()
     {
         Mat result;
@@ -177,6 +188,7 @@ public:
         return result;
     }
 
+	//reads list of image names from a file
     static bool readStringList( const string& filename, vector<string>& l )
     {
         l.clear();
@@ -192,6 +204,8 @@ public:
         return true;
     }
 
+	//???
+	//checks whether the file exists?
     static bool isListOfImages( const string& filename)
     {
         string s(filename);
@@ -237,6 +251,8 @@ private:
 
 };
 
+//???
+//what does this one do specifically compared to the read above? is it just a static function which you can call from anywhere?
 static inline void read(const FileNode& node, Settings& x, const Settings& default_value = Settings())
 {
     if(node.empty())
@@ -245,6 +261,8 @@ static inline void read(const FileNode& node, Settings& x, const Settings& defau
         x.read(node);
 }
 
+//???
+//same as the read, what does this specifically do
 static inline void write(FileStorage& fs, const String&, const Settings& s )
 {
     s.write(fs);
@@ -259,7 +277,7 @@ int main(int argc, char* argv[])
 {
     help();
 
-    //! [file_read]
+    //Read the file
     Settings s;
     const string inputSettingsFile = argc > 1 ? argv[1] : "default.xml";
     FileStorage fs(inputSettingsFile, FileStorage::READ); // Read the settings
@@ -270,14 +288,14 @@ int main(int argc, char* argv[])
     }
     fs["Settings"] >> s;
     fs.release();                                         // close Settings file
-    //! [file_read]
+
 
     //FileStorage fout("settings.yml", FileStorage::WRITE); // write config as YAML
     //fout << "Settings" << s;
 
     if (!s.goodInput)
     {
-        cout << "Invalid input detected. Application stopping. " << endl;
+        cout << "Invalid input detected. Stopping application. " << endl;
         return -1;
     }
 
@@ -289,7 +307,7 @@ int main(int argc, char* argv[])
     const Scalar RED(0,0,255), GREEN(0,255,0);
     const char ESC_KEY = 27;
 
-    //! [get_input]
+    //Get the input
     for(;;)
     {
         Mat view;
@@ -312,12 +330,11 @@ int main(int argc, char* argv[])
                 runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints);
             break;
         }
-        //! [get_input]
 
         imageSize = view.size();  // Format input image.
         if( s.flipVertical )    flip( view, view, 0 );
 
-        //! [find_pattern]
+        //find the pattern on the input
         vector<Point2f> pointBuf;
 
         bool found;
@@ -344,8 +361,8 @@ int main(int argc, char* argv[])
             found = false;
             break;
         }
-        //! [find_pattern]
-        //! [pattern_found]
+
+        //When the pattern was succesfully found
         if ( found)                // If done with success,
         {
               // improve the found corners' coordinate accuracy for chessboard
@@ -368,9 +385,9 @@ int main(int argc, char* argv[])
                 // Draw the corners.
                 drawChessboardCorners( view, s.boardSize, Mat(pointBuf), found );
         }
-        //! [pattern_found]
+
+
         //----------------------------- Output Text ------------------------------------------------
-        //! [output_text]
         string msg = (mode == CAPTURING) ? "100/100" :
                       mode == CALIBRATED ? "Calibrated" : "Press 'g' to start";
         int baseLine = 0;
@@ -389,9 +406,8 @@ int main(int argc, char* argv[])
 
         if( blinkOutput )
             bitwise_not(view, view);
-        //! [output_text]
+
         //------------------------- Video capture  output  undistorted ------------------------------
-        //! [output_undistorted]
         if( mode == CALIBRATED && s.showUndistorsed )
         {
             Mat temp = view.clone();
@@ -400,9 +416,8 @@ int main(int argc, char* argv[])
             else
               undistort(temp, view, cameraMatrix, distCoeffs);
         }
-        //! [output_undistorted]
+
         //------------------------------ Show image and check for input commands -------------------
-        //! [await_input]
         imshow("Image View", view);
         char key = (char)waitKey(s.inputCapture.isOpened() ? 50 : s.delay);
 
@@ -417,11 +432,9 @@ int main(int argc, char* argv[])
             mode = CAPTURING;
             imagePoints.clear();
         }
-        //! [await_input]
     }
 
     // -----------------------Show the undistorted image for the image list ------------------------
-    //! [show_results]
     if( s.inputType == Settings::IMAGE_LIST && s.showUndistorsed )
     {
         Mat view, rview, map1, map2;
@@ -454,7 +467,6 @@ int main(int argc, char* argv[])
                 break;
         }
     }
-    //! [show_results]
 
     return 0;
 }
@@ -492,8 +504,8 @@ static double computeReprojectionErrors( const vector<vector<Point3f> >& objectP
 
     return std::sqrt(totalErr/totalPoints);
 }
-//! [compute_errors]
-//! [board_corners]
+
+//Calculates the locations of corners on the checkerboard
 static void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>& corners,
                                      Settings::Pattern patternType /*= Settings::CHESSBOARD*/)
 {
@@ -517,16 +529,16 @@ static void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Po
         break;
     }
 }
-//! [board_corners]
+
+//Run the calibration, calculating the cameramatrix and distortion coefficients
 static bool runCalibration( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
                             vector<vector<Point2f> > imagePoints, vector<Mat>& rvecs, vector<Mat>& tvecs,
                             vector<float>& reprojErrs,  double& totalAvgErr)
 {
-    //! [fixed_aspect]
+
     cameraMatrix = Mat::eye(3, 3, CV_64F);
     if( s.flag & CALIB_FIX_ASPECT_RATIO )
         cameraMatrix.at<double>(0,0) = s.aspectRatio;
-    //! [fixed_aspect]
     if (s.useFisheye) {
         distCoeffs = Mat::zeros(4, 1, CV_64F);
     } else {
@@ -680,7 +692,7 @@ static void saveCameraParams( Settings& s, Size& imageSize, Mat& cameraMatrix, M
     }
 }
 
-//! [run_and_save]
+//Call both the calibrate function and save its results to a file
 bool runCalibrationAndSave(Settings& s, Size imageSize, Mat& cameraMatrix, Mat& distCoeffs,
                            vector<vector<Point2f> > imagePoints)
 {
@@ -698,4 +710,4 @@ bool runCalibrationAndSave(Settings& s, Size imageSize, Mat& cameraMatrix, Mat& 
                          totalAvgErr);
     return ok;
 }
-//! [run_and_save]
+

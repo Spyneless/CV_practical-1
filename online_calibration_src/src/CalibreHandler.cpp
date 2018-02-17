@@ -4,13 +4,11 @@
 /*  Function Name: (initialSetting)
 	Description:
 	1. Setting camera data file path and resolution of video streaming.
-	2. retrive the camera matrix and distortion coefficients.  
+	2. retrivee the camera matrix and distortion coefficients.  
 	3. Add 3D corner points 
 	4. Add 3D cube points 
 	5. Video start 
 */
-
-
 void CalibreHandler::initialSetting() {
 	//Basic Settting
 	outputFileName = "out_camera_data.xml";
@@ -26,11 +24,11 @@ void CalibreHandler::initialSetting() {
 	//Open webcam and start to catch each frame
 	videoStart();
 }
+
 /*  Function Name: readCameraParam
 	Description:
 	1.retrive the camera matrix and distortion coefficients. 
 */
-
 bool CalibreHandler::readCameraParam() {
 	FileStorage fs(outputFileName, FileStorage::READ);
 	if (!fs.isOpened())
@@ -82,7 +80,6 @@ void CalibreHandler::addDrawingPoints() {
 	2. Find 2D corner points.
 	3. mapping cube points into image by mappingAndDrawing func.
 */
-
 bool CalibreHandler::videoStart() {
 	// open the default camera
 	
@@ -122,7 +119,6 @@ bool CalibreHandler::videoStart() {
    2. Projecting Cube points into image points
    3. Drawing Cube by these image points. 
 */
-
 void CalibreHandler::mappingAndDrawing() {
 	//Finding rvec & tvec from corner points in 2D and 3D
 	Mat rvec, tvec;

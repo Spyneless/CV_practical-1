@@ -204,7 +204,6 @@ public:
         return true;
     }
 
-	//???
 	//checks whether the file exists?
     static bool isListOfImages( const string& filename)
     {
@@ -251,8 +250,7 @@ private:
 
 };
 
-//???
-//what does this one do specifically compared to the read above? is it just a static function which you can call from anywhere?
+//Call the read function
 static inline void read(const FileNode& node, Settings& x, const Settings& default_value = Settings())
 {
     if(node.empty())
@@ -261,8 +259,7 @@ static inline void read(const FileNode& node, Settings& x, const Settings& defau
         x.read(node);
 }
 
-//???
-//same as the read, what does this specifically do
+//Call the write function
 static inline void write(FileStorage& fs, const String&, const Settings& s )
 {
     s.write(fs);

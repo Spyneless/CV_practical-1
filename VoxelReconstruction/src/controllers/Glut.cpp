@@ -897,7 +897,7 @@ void Glut::drawVoxels()
 
 	// apply default translation
 	glTranslatef(0, 0, 0);
-	glPointSize(2.0f);
+	glPointSize(4.0f); // 2.0f
 	glBegin(GL_POINTS);
 
 	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
@@ -905,7 +905,7 @@ void Glut::drawVoxels()
 	{
 		//try to change the voxels color
 		//glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
-		glColor4f(0.7f, 0.7f, 0.2f, 1.0f);
+		glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
 		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
 	}
 

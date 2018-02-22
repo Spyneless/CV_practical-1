@@ -95,11 +95,11 @@ Scene3DRenderer::Scene3DRenderer(
 	m_dilation_iter = 1;
 
 	// Create Erosion Trackbar
-	createTrackbar("E:0:Rect\n 1:Cross\n 2:Ellipse", VIDEO_WINDOW, &m_erosion_elem, 2);
+	createTrackbar("E:Kernel", VIDEO_WINDOW, &m_erosion_elem, 2);
 	createTrackbar("E:size:", VIDEO_WINDOW, &m_erosion_size, 21);
 	createTrackbar("E:Iter:", VIDEO_WINDOW, &m_erosion_iter, 15);
 	// Create Dilation Trackbar
-	createTrackbar("D:0:Rect\n 1:Cross\n 2:Ellipse", VIDEO_WINDOW, &m_dilation_elem, 2);
+	createTrackbar("D:Kernel", VIDEO_WINDOW, &m_dilation_elem, 2);
 	createTrackbar("D:size:", VIDEO_WINDOW, &m_dilation_size, 21);
 	createTrackbar("D:Iter:", VIDEO_WINDOW, &m_dilation_iter, 15);
 
@@ -172,8 +172,11 @@ void Scene3DRenderer::processForeground(
 
 
 	// Improve the foreground image
-	Erosion(0, 0, foreground);
-	Dilation(0, 0, foreground);
+	if(m_erosion_size > 0 )
+		Erosion(0, 0, foreground);
+	if(m_dilation_size > 0)
+		Dilation(0, 0, foreground);
+	
 	camera->setForegroundImage(foreground);
 }
 
@@ -255,13 +258,19 @@ void Scene3DRenderer::Erosion(int, void*, const cv::Mat& foreground)
 	else if (m_erosion_elem == 1) { erosion_type = MORPH_CROSS; }
 	else if (m_erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
 
-	Mat element = getStructuringElement(erosion_type,
+	/*Mat element = getStructuringElement(erosion_type,
 		Size(2 * m_erosion_size + 1, 2 * m_erosion_size + 1),
 		Point(m_erosion_size, m_erosion_size));
+		*/
+	Mat element = getStructuringElement(MORPH_CROSS,
+		Size(1,2*m_erosion_size + 1), Point(0, m_erosion_size*2));
+
 
 	//InputArray input = InputArray(foreground);
 	/// Apply the erosion operation
-	erode(foreground, foreground, element);
+	if (m_erosion_iter == 0)
+		m_erosion_iter = 1;
+	erode(foreground, foreground, element, Point(0, m_erosion_size * 2), m_erosion_iter);
 
 }
 
@@ -273,11 +282,17 @@ void Scene3DRenderer::Dilation(int, void*, const cv::Mat& foreground)
 	else if (m_dilation_elem == 1) { dilation_type = MORPH_CROSS; }
 	else if (m_dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
 
-	Mat element = getStructuringElement(dilation_type,
+	/*Mat element = getStructuringElement(dilation_type,
 		Size(2 * m_dilation_size + 1, 2 * m_dilation_size + 1),
 		Point(m_dilation_size, m_dilation_size));
+		*/
+	Mat element = getStructuringElement(MORPH_CROSS,
+		Size(2* m_dilation_size + 1, 1), Point(m_dilation_size, 0));
+
 	/// Apply the dilation operation
-	dilate(foreground, foreground, element);
+	if (m_dilation_iter == 0)
+		m_dilation_iter = 1;
+	dilate(foreground, foreground, element, Point(m_dilation_size, 0), m_dilation_iter);
 }
 
 

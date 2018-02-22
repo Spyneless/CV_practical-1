@@ -1,2 +1,17 @@
 
 *.db
+VoxelReconstruction/x64/Debug/arcball.obj
+VoxelReconstruction/x64/Debug/Camera.obj
+VoxelReconstruction/x64/Debug/VoxelRec.D024333B.tlog/link.read.1.tlog
+VoxelReconstruction/x64/Debug/VoxelRec.D024333B.tlog/CL.command.1.tlog
+VoxelReconstruction/x64/Debug/VoxelRec.D024333B.tlog/link.command.1.tlog
+VoxelReconstruction/x64/Debug/VoxelReconstruction.pdb
+VoxelReconstruction/x64/Debug/VoxelReconstruction.obj
+VoxelReconstruction/x64/Debug/VoxelReconstruction.log
+*.lastbuildstate
+*.obj
+*.tlog
+VoxelReconstruction/x64/Debug/vc140.idb
+VoxelReconstruction/x64/Debug/vc140.pdb
+VoxelReconstruction/x64/Debug/VoxelReconstruction.exe
+VoxelReconstruction/x64/Debug/VoxelReconstruction.ilk

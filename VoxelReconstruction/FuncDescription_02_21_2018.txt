@@ -1,0 +1,77 @@
+[Get intrinsics]
+- Calculate intrinsic matrix by sampling frames at an appropriate interval. 
+(e.g.sampling rate is 40~60 frames, which uses entire video.)
+- Save it into intrinsics.xml for each camera. 
+
+Camera.cpp
+[Initialize]
+- Create Background image by averaging each frame in background.avi
+- Read camera properties (CMat/DisCoeff/rvec/tvec) through config.xml
+- 	initCamLoc();  // Calculate the camera's location in the world
+	camPtInWorld();  //Calculate the camera's plane and fov in the 3D scene
+[detExtrinsics]
+- Read intrinsics & ChessBorad configuration(W,H,square size) 
+- (Once) manually build location of corners
+- (Once) Calculate extrinsics and save as config.xml
+-  Draw the 3-axis (origin
+
+VoxelReconstruction.cpp 
+[construtor]
+- Check every file exist 
+- Create a new camera in m_cam_views.
+
+[run]
+- initialized all cameras (->detExtrinsics()
+- Reconstructor (Voxels initialized) <- *Critical time consuming.
+- Scene3DRenderer  (BG subtraction) <- *Dilation, Erosion)
+- Glut *(Scend3DRenderer)  <-
+
+Reconstructor.cpp
+[initialize]
+- Create LUT (ALL voxels)
+[update] <<<--- Glut.update
+*- convert white pixels in the foreground image into visiblevoxels
+*Condistion:  If the voxel is present on all cameras
+
+Scene3DRenderer.cpp
+[processForeground] <<<--- Glut.update
+- BG subtraction and generate a new foreground image
+- **New algorithm to improve the foreground image.
+
+
+Glut.cpp
+[mainLoopWindows]
+- while loop, calling update()
+
+[update]
+- update the scene with a new frame
+*- If not paused, automatically loop frames
+- Update H,S and V thresholds
+*- Automatically rotate (2 degree) //arcball_add_angle(2);
+*-  Get the image and the foreground image (of set camera)
+* - Concatenate the video frame with the foreground image (of set camera) 
+	imshow!
+[drawCamCoord]
+- Draw camera coordinates
+[drawVolume]
+- Draw the voxel bounding box
+[drawVoxels]
+	
+m_foreground_image : Binary image for foreground image (White/Black)
+
+
+Target:
+Save all frames as a video.  
+	- (issue) The code uses OpenGL. How to access each frame in the OpenGL scene.
+	
+
+02/22
+[Create Video] 
+- Key interruption
+- glReadPixels (read the data in buffer)
+- arcball rotate + display 
+- VideoWrite (image -> video)
+[Change the color]
+drawvoxels
+
+	

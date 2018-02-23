@@ -335,17 +335,20 @@ void Glut::keyboard(
 			reset();
 			arcball_reset();
 		}
-		//add save image function
+		// Save a video.
 		else if (key == 'z')
 		{
-			scene3d.setCamera(1);
-			reset();
+		//	scene3d.setCamera(1);
+		//	reset();
 			SaveImg();
-			//scene3d.setRotate(true);
-
-
+		}
+		else if (key == '0')
+		{
+			scene3d.HistoryUndo();
+			scene3d.setCurrentFrame(scene3d.getCurrentFrame() + 1);
 		}
 
+		
 
 	}
 	else if (key_i > 0 && key_i <= (int) scene3d.getCameras().size())
@@ -354,17 +357,49 @@ void Glut::keyboard(
 		reset();
 		arcball_reset();
 	}
+	// Add Erosion_H/V and Dilation H/V process into Processing List.000
+	// click 5~8 -> Erosion Horizontal ; 9:reset all actions 0: Undo one action
+	else if (key_i > 4 || key_i == 0)
+	{
+		if (key_i == 5)
+		{
+			scene3d.Erosion_H();
+			scene3d.setCurrentFrame(scene3d.getCurrentFrame() + 1);
+		}
+		else if (key_i == 6)
+		{
+			scene3d.Erosion_V();
+			scene3d.setCurrentFrame(scene3d.getCurrentFrame() + 1);
+		}
+		else if (key_i == 7)
+		{
+			scene3d.Dilation_H();
+			scene3d.setCurrentFrame(scene3d.getCurrentFrame() + 1);
+		}
+		else if (key_i == 8)
+		{
+			scene3d.Dilation_V();
+			scene3d.setCurrentFrame(scene3d.getCurrentFrame() + 1);
+		}
+		else if (key_i == 9)
+		{
+			scene3d.HistoryReset();
+			scene3d.setCurrentFrame(scene3d.getCurrentFrame() + 1);
+		}
+
+
+	}
+
 }
-//Ryan
+// Record a video by rotating the view. 
+
 void Glut::SaveImg() {
 	Scene3DRenderer& scene3d = m_Glut->getScene3d();
 	int w = scene3d.getWidth();
 	int h = scene3d.getHeight();
 	Mat save_image(h, w, CV_8UC3);
 	Mat save_image_flip(h, w, CV_8UC3);
-	string img_name = "test1.jpg";
-	cout << img_name << endl;
-
+	
 	// Set the pixel saving mode; Packing Alignment :by 1 or by 4 ; Row_Length:
 	glPixelStorei(GL_PACK_ALIGNMENT, (save_image.step & 3) ? 1 : 4);
 	glPixelStorei(GL_PACK_ROW_LENGTH, save_image.step / save_image.elemSize());
@@ -377,10 +412,9 @@ void Glut::SaveImg() {
 
 		glReadPixels(0, 0, w, h, GL_BGR_EXT, GL_UNSIGNED_BYTE, save_image.data);
 		flip(save_image, save_image_flip, 0);
-//		imwrite(img_name, save_image_flip);
+
 		if (save_image_flip.empty())
 			break;
-		//Write image to video 
 		video.write(save_image_flip);
 
 	}
@@ -728,12 +762,12 @@ void Glut::drawGrdGrid()
 	for (int g = 0; g < gSize; g++)
 	{
 		// y lines
-		glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
+		glColor4f(0.9f, 0.2f, 0.2f, 0.5f); //0.5f
 		glVertex3f((GLfloat) floor_grid[0][g]->x, (GLfloat) floor_grid[0][g]->y, (GLfloat) floor_grid[0][g]->z);
 		glVertex3f((GLfloat) floor_grid[2][g]->x, (GLfloat) floor_grid[2][g]->y, (GLfloat) floor_grid[2][g]->z);
 
 		// x lines
-		glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
+		glColor4f(0.9f, 0.2f, 0.2f, 0.5f); //0.5f
 		glVertex3f((GLfloat) floor_grid[1][g]->x, (GLfloat) floor_grid[1][g]->y, (GLfloat) floor_grid[1][g]->z);
 		glVertex3f((GLfloat) floor_grid[3][g]->x, (GLfloat) floor_grid[3][g]->y, (GLfloat) floor_grid[3][g]->z);
 	}
@@ -758,42 +792,51 @@ void Glut::drawCamCoord()
 		vector<Point3f> plane = cameras[i]->getCameraPlane();
 
 		// 0 - 1
-		glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+//		glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+		glColor4f(0.25f, 0.9f, 0.3f, 0.6f);
+
 		glVertex3f(plane[0].x, plane[0].y, plane[0].z);
 		glVertex3f(plane[1].x, plane[1].y, plane[1].z);
 
 		// 0 - 2
-		glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+		//glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+		glColor4f(0.25f, 0.9f, 0.3f, 0.6f);
 		glVertex3f(plane[0].x, plane[0].y, plane[0].z);
 		glVertex3f(plane[2].x, plane[2].y, plane[2].z);
 
 		// 0 - 3
-		glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+		//glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+		glColor4f(0.25f, 0.9f, 0.3f, 0.6f);
 		glVertex3f(plane[0].x, plane[0].y, plane[0].z);
 		glVertex3f(plane[3].x, plane[3].y, plane[3].z);
 
 		// 0 - 4
-		glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+		glColor4f(0.25f, 0.9f, 0.3f, 0.6f);
+		//glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
 		glVertex3f(plane[0].x, plane[0].y, plane[0].z);
 		glVertex3f(plane[4].x, plane[4].y, plane[4].z);
 
 		// 1 - 2
-		glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		glColor4f(0.25f, 0.9f, 0.3f, 0.6f);
+		//glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 		glVertex3f(plane[1].x, plane[1].y, plane[1].z);
 		glVertex3f(plane[2].x, plane[2].y, plane[2].z);
 
 		// 2 - 3
-		glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		glColor4f(0.25f, 0.9f, 0.3f, 0.6f);
+		//glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 		glVertex3f(plane[2].x, plane[2].y, plane[2].z);
 		glVertex3f(plane[3].x, plane[3].y, plane[3].z);
 
 		// 3 - 4
-		glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		//glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		glColor4f(0.25f, 0.9f, 0.3f, 0.6f);
 		glVertex3f(plane[3].x, plane[3].y, plane[3].z);
 		glVertex3f(plane[4].x, plane[4].y, plane[4].z);
 
 		// 4 - 1
-		glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		//glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		glColor4f(0.25f, 0.9f, 0.3f, 0.6f);
 		glVertex3f(plane[4].x, plane[4].y, plane[4].z);
 		glVertex3f(plane[1].x, plane[1].y, plane[1].z);
 	}
@@ -897,7 +940,7 @@ void Glut::drawVoxels()
 
 	// apply default translation
 	glTranslatef(0, 0, 0);
-	glPointSize(4.0f); // 2.0f
+	glPointSize(2.0f); // 2.0f
 	glBegin(GL_POINTS);
 
 	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
@@ -905,7 +948,7 @@ void Glut::drawVoxels()
 	{
 		//try to change the voxels color
 		//glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
-		glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
+		glColor4f(0.25f, 0.6f, 1.0f, 0.7f);
 		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
 	}
 

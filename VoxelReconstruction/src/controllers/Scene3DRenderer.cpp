@@ -13,6 +13,7 @@
 #include <opencv2/imgproc/types_c.h>
 #include <stddef.h>
 #include <string>
+#include <iostream>
 
 #include "../utilities/General.h"
 
@@ -26,7 +27,6 @@ namespace nl_uu_science_gmt
  * Constructor
  * Scene properties class (mostly called by Glut)
  */
-
 
 Scene3DRenderer::Scene3DRenderer(
 		Reconstructor &r, const vector<Camera*> &cs) :
@@ -69,7 +69,7 @@ Scene3DRenderer::Scene3DRenderer(
 
 	const int H = 0;
 	const int S = 15;
-	const int V = 51;
+	const int V = 71;
 	m_h_threshold = H;
 	m_ph_threshold = H;
 	m_s_threshold = S;
@@ -84,9 +84,7 @@ Scene3DRenderer::Scene3DRenderer(
 	createTrackbar("V", VIDEO_WINDOW, &m_v_threshold, 255);
 
 	//erosion & dilation 02/21/2018
-	//(Opt) Add the number of iteration
-	//const int e_elem = 0;
-	//const int e_size = 0;
+
 	m_erosion_elem = 1;
 	m_erosion_size = 1;
 	m_erosion_iter = 1;
@@ -95,14 +93,9 @@ Scene3DRenderer::Scene3DRenderer(
 	m_dilation_iter = 1;
 
 	// Create Erosion Trackbar
-	createTrackbar("E:Kernel", VIDEO_WINDOW, &m_erosion_elem, 2);
-	createTrackbar("E:size:", VIDEO_WINDOW, &m_erosion_size, 21);
-	createTrackbar("E:Iter:", VIDEO_WINDOW, &m_erosion_iter, 15);
-	// Create Dilation Trackbar
-	createTrackbar("D:Kernel", VIDEO_WINDOW, &m_dilation_elem, 2);
-	createTrackbar("D:size:", VIDEO_WINDOW, &m_dilation_size, 21);
-	createTrackbar("D:Iter:", VIDEO_WINDOW, &m_dilation_iter, 15);
 
+	createTrackbar("Size:", VIDEO_WINDOW, &m_erosion_size, 21);
+	createTrackbar("Iteration:", VIDEO_WINDOW, &m_erosion_iter, 15);
 
 	createFloorGrid();
 	setTopView();
@@ -169,15 +162,32 @@ void Scene3DRenderer::processForeground(
 	threshold(tmp, background, m_v_threshold, 255, CV_THRESH_BINARY);
 	bitwise_or(foreground, background, foreground);
 
+	// Retrive and process the action list. (Corresponding Keys:5,6,7, and 8)
+	for (int j = 0; j < m_history_type.size(); j++) {
+		string type = "";
 
+		if (m_history_type[j] == 0) {
+			Erosion(0, 0, foreground, 0, m_history_size[j], m_history_iter[j]);
+			type = "Erosion-Horizontal";
+		}
+		else if (m_history_type[j] == 1) {
+			Erosion(0, 0, foreground, 1, m_history_size[j], m_history_iter[j]);
+			type = "Erosion-Vertical";
+		}
+		else if (m_history_type[j] == 2) {
+			Dilation(0, 0, foreground, 0, m_history_size[j], m_history_iter[j]);
+			type = "Dilation-Horizontal";
+		}
+		else if (m_history_type[j] == 3) {
+			Dilation(0, 0, foreground, 1, m_history_size[j], m_history_iter[j]);
+			type = "Dilation-Vertical";
+		}
+		cout << j << ":" "- Type:" << type << "- Size:" << m_history_size[j] << "- Iteration:" << m_history_iter[j] << endl;
+	}
+	cout << "-----End of image process-----" << endl;
 
-	// Improve the foreground image
-	if(m_erosion_size > 0 )
-		Erosion(0, 0, foreground);
-	if(m_dilation_size > 0)
-		Dilation(0, 0, foreground);
 	
-	camera->setForegroundImage(foreground);
+		camera->setForegroundImage(foreground);
 }
 
 /**
@@ -250,49 +260,84 @@ void Scene3DRenderer::createFloorGrid()
 	m_floor_grid.push_back(edge4);
 }
 
-void Scene3DRenderer::Erosion(int, void*, const cv::Mat& foreground)
+void Scene3DRenderer::Erosion(int, void*, const cv::Mat& foreground,  int HV,  int size, int iter)
 {
-	int erosion_type;
-
-	if (m_erosion_elem == 0) { erosion_type = MORPH_RECT; }
-	else if (m_erosion_elem == 1) { erosion_type = MORPH_CROSS; }
-	else if (m_erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
-
-	/*Mat element = getStructuringElement(erosion_type,
-		Size(2 * m_erosion_size + 1, 2 * m_erosion_size + 1),
-		Point(m_erosion_size, m_erosion_size));
-		*/
-	Mat element = getStructuringElement(MORPH_CROSS,
-		Size(1,2*m_erosion_size + 1), Point(0, m_erosion_size*2));
-
-
-	//InputArray input = InputArray(foreground);
-	/// Apply the erosion operation
-	if (m_erosion_iter == 0)
-		m_erosion_iter = 1;
-	erode(foreground, foreground, element, Point(0, m_erosion_size * 2), m_erosion_iter);
+	// Make sure size & iteration larger than one
+	if (size == 0)
+		size = 1;
+	if (iter == 0)
+		iter = 1;
+	Mat element;
+	if(HV == 0)  //Horizotal erosion
+	{
+		element = getStructuringElement(MORPH_CROSS,
+		Size(2 * size + 1,1), Point(size,0)); //center erosion
+		erode(foreground, foreground, element, Point(size,0), iter);
+	}else{    // Vertical erosion (upper)
+        element = getStructuringElement(MORPH_CROSS,
+		Size(1,2 * size + 1), Point(0, size *2)); //upper erosion 
+		erode(foreground, foreground, element, Point(0, size * 2), iter);
+	}
+	
 
 }
 
 
-void Scene3DRenderer::Dilation(int, void*, const cv::Mat& foreground)
+void Scene3DRenderer::Dilation(int, void*, const cv::Mat& foreground,  int HV,  int size,  int iter)
 {
-	int dilation_type;
-	if (m_dilation_elem == 0) { dilation_type = MORPH_RECT; }
-	else if (m_dilation_elem == 1) { dilation_type = MORPH_CROSS; }
-	else if (m_dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
+	// Make sure size & iteration larger than one
+	if (size == 0)
+		size = 1;
+	if (iter == 0)
+		iter = 1;
+	
+	Mat element;
+	if (HV == 0)  //Horizotal dilation
+	{
+		element = getStructuringElement(MORPH_CROSS,
+			Size(2 * size + 1, 1), Point(size, 0)); //center dilation
+		dilate(foreground, foreground, element, Point(size, 0), iter);
+	}
+	else {    // Vertical dilation 
+		element = getStructuringElement(MORPH_CROSS,
+			Size(1, 2 * size + 1), Point(0, size)); //center dilation 
+		dilate(foreground, foreground, element, Point(0, size), iter);
+	}
 
-	/*Mat element = getStructuringElement(dilation_type,
-		Size(2 * m_dilation_size + 1, 2 * m_dilation_size + 1),
-		Point(m_dilation_size, m_dilation_size));
-		*/
-	Mat element = getStructuringElement(MORPH_CROSS,
-		Size(2* m_dilation_size + 1, 1), Point(m_dilation_size, 0));
+}
+// Store individual action into action list (history)
+void Scene3DRenderer::Erosion_H() {
+	m_history_type.push_back(0);
+	m_history_size.push_back(m_erosion_size);
+	m_history_iter.push_back(m_erosion_iter);
 
-	/// Apply the dilation operation
-	if (m_dilation_iter == 0)
-		m_dilation_iter = 1;
-	dilate(foreground, foreground, element, Point(m_dilation_size, 0), m_dilation_iter);
+}
+void Scene3DRenderer::Erosion_V() {
+	m_history_type.push_back(1);
+	m_history_size.push_back(m_erosion_size);
+	m_history_iter.push_back(m_erosion_iter);
+}
+void Scene3DRenderer::Dilation_H() {
+	m_history_type.push_back(2);
+	m_history_size.push_back(m_erosion_size);
+	m_history_iter.push_back(m_erosion_iter);
+}
+void Scene3DRenderer::Dilation_V() {
+	m_history_type.push_back(3);
+	m_history_size.push_back(m_erosion_size);
+	m_history_iter.push_back(m_erosion_iter);
+}
+// Reset all actions
+void Scene3DRenderer::HistoryReset() {
+	m_history_type.clear();
+	m_history_size.clear();
+	m_history_iter.clear();
+}
+//Undo one step
+void Scene3DRenderer::HistoryUndo() {
+	m_history_type.pop_back();
+	m_history_size.pop_back();
+	m_history_iter.pop_back();
 }
 
 

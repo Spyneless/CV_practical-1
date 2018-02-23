@@ -11,6 +11,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/operations.hpp>
 #include <vector>
+#include <list>
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -18,6 +19,8 @@
 #include "arcball.h"
 #include "Camera.h"
 #include "Reconstructor.h"
+
+
 
 namespace nl_uu_science_gmt
 {
@@ -70,13 +73,17 @@ class Scene3DRenderer
 	int m_v_threshold;                        // Value threshold number for background subtraction
 	int m_pv_threshold;                       // Value threshold value at previous iteration (update awareness)
 	
-	//erosion & dilation test
+	//Erosion & Dilation tuning parameters
 	int m_erosion_elem;
 	int m_erosion_size;
 	int m_dilation_elem;
 	int m_dilation_size;
 	int m_erosion_iter;
 	int m_dilation_iter;
+
+	std::vector<int> m_history_type;
+	std::vector<int> m_history_size;
+	std::vector<int> m_history_iter;
 
 	// edge points of the virtual ground floor grid
 	std::vector<std::vector<cv::Point3i*> > m_floor_grid;
@@ -94,12 +101,19 @@ public:
 
 	void processForeground(
 			Camera*);
-	void Scene3DRenderer::Erosion(int, void*, const cv::Mat&); // New Added
-	void Scene3DRenderer::Dilation(int, void*, const cv::Mat&); // New Added
+	// New image process sets
+	void Erosion(int, void*, const cv::Mat&,  int HV,  int size,  int iter); 
+	void Dilation(int, void*, const cv::Mat&,  int HV,  int size,  int iter); 
+	void Dilation_H();
+	void Dilation_V();
+	void Erosion_H();
+	void Erosion_V();
+	void HistoryReset();
+	void HistoryUndo();
+	//
 
 	bool processFrame();
-	void setCamera(
-			int);
+	void setCamera(int);
 	void setTopView();
 
 	const std::vector<Camera*>& getCameras() const
@@ -422,6 +436,8 @@ public:
 	{
 		return m_square_side_len;
 	}
+	
+	
 };
 
 } /* namespace nl_uu_science_gmt */
